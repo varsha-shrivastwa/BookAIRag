@@ -1,0 +1,39 @@
+{
+  "name": "rag-book-backend",
+  "version": "1.0.0",
+  "description": "NestJS RAG Backend for Book Recommendations in Pure JavaScript",
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node dist/main.js",
+    "start:dev": "nodemon bootstrap.js",
+    "build": "babel src -d dist",
+    "seed": "node bootstrap-seed.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@nestjs/common": "^10.3.0",
+    "@nestjs/config": "^3.1.1",
+    "@nestjs/core": "^10.3.0",
+    "@nestjs/platform-express": "^10.3.0",
+    "@nestjs/swagger": "^7.3.0",
+    "@nestjs/throttler": "^5.1.1",
+    "axios": "^1.6.5",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.4",
+    "@babel/core": "^7.23.7",
+    "@babel/node": "^7.22.19",
+    "@babel/plugin-proposal-decorators": "^7.23.7",
+    "@babel/preset-env": "^7.23.7",
+    "@swc-node/register": "^1.12.1",
+    "@swc/core": "^1.16.2",
+    "nodemon": "^3.0.2"
+  }
+}

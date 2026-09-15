@@ -1,0 +1,220 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Google Fonts ─────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ─── CSS Variables ─────────────────────────────────────────────────── */
+:root {
+  --bg-primary: #050710;
+  --bg-secondary: #0d1117;
+  --bg-card: rgba(15, 18, 32, 0.75);
+  --bg-card-hover: rgba(20, 24, 42, 0.85);
+  --border-glass: rgba(255, 255, 255, 0.07);
+  --border-hover: rgba(139, 92, 246, 0.4);
+  --accent-purple: #8b5cf6;
+  --accent-indigo: #6366f1;
+  --accent-pink: #ec4899;
+  --accent-cyan: #22d3ee;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #4b5563;
+  --shadow-purple: rgba(139, 92, 246, 0.25);
+  --shadow-dark: rgba(0, 0, 0, 0.6);
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle grid overlay on the whole page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Glassmorphism ─────────────────────────────────────────────────── */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border-glass);
+  box-shadow:
+    0 4px 24px var(--shadow-dark),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.glass-panel-hover {
+  transition: all 0.25s ease;
+}
+.glass-panel-hover:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  box-shadow:
+    0 8px 32px var(--shadow-dark),
+    0 0 20px var(--shadow-purple),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.glass-glow {
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.3),
+    inset 0 1px 0 rgba(139, 92, 246, 0.1);
+}
+
+/* ─── Gradient Text ─────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #c4b5fd 0%, #818cf8 40%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-blue {
+  background: linear-gradient(135deg, #60a5fa 0%, #818cf8 60%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glow Blobs ────────────────────────────────────────────────────── */
+.glow-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+  animation: blob 12s ease-in-out infinite;
+}
+
+.glow-purple { background: radial-gradient(circle, #8b5cf6, #ec4899); }
+.glow-blue   { background: radial-gradient(circle, #3b82f6, #6366f1); }
+.glow-cyan   { background: radial-gradient(circle, #22d3ee, #6366f1); }
+
+@keyframes blob {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  33%       { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  66%       { border-radius: 50% 50% 40% 60% / 40% 50% 60% 50%; }
+}
+
+/* ─── Shimmer loading skeleton ──────────────────────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.02) 0%,
+    rgba(139, 92, 246, 0.12) 50%,
+    rgba(255,255,255,0.02) 100%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 2.2s linear infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -400% 0; }
+  100% { background-position:  400% 0; }
+}
+
+/* ─── Typing cursor blink ───────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 0.9s step-end infinite;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.25);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* ─── Message bubble prose ──────────────────────────────────────────── */
+.message-prose p { margin-bottom: 0.5rem; }
+.message-prose p:last-child { margin-bottom: 0; }
+.message-prose strong { color: #c4b5fd; font-weight: 600; }
+.message-prose em { color: #94a3b8; }
+
+/* ─── Floating animation ────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+.animate-float      { animation: float 6s ease-in-out infinite; }
+.animate-float-slow { animation: float 10s ease-in-out infinite; }
+
+/* ─── Slide-up entrance ─────────────────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+
+/* ─── Book card hover ring ──────────────────────────────────────────── */
+.card-ring {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899, #6366f1);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+.group:hover .card-ring { opacity: 0.6; }
+
+/* ─── Input focus glow ──────────────────────────────────────────────── */
+.input-glow:focus-within {
+  box-shadow:
+    0 0 0 2px rgba(139, 92, 246, 0.4),
+    0 4px 24px rgba(139, 92, 246, 0.15);
+}
+
+/* ─── Badge pill ────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.1);
+  color: #c4b5fd;
+}
+
+/* ─── Selection ─────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+  color: #e9d5ff;
+}
