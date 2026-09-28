@@ -1,4 +1,5 @@
 import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata = {
   title: 'BookAI — Intelligent RAG Book Recommendations',
@@ -23,7 +24,9 @@ export default function RootLayout({ children }) {
         <div className="glow-blob glow-cyan   w-[400px] h-[400px] bottom-0  left-1/3"  style={{ animationDelay: '8s' }} />
         <div className="glow-blob glow-purple w-[350px] h-[350px] bottom-24 right-1/4" style={{ animationDelay: '2s' }} />
 
-        <main className="relative z-10">{children}</main>
+        <AuthProvider>
+          <main className="relative z-10">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );
