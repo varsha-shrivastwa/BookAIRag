@@ -15,8 +15,8 @@ const WELCOME_MESSAGE = {
 };
 
 export function ChatContainer() {
-  const [messages, setMessages] = useState([WELCOME_MESSAGE]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages]     = useState([WELCOME_MESSAGE]);
+  const [isLoading, setIsLoading]   = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const messagesEndRef = useRef(null);
 
@@ -28,9 +28,7 @@ export function ChatContainer() {
     const currentLength = messages.length;
     const botMsgIdx = currentLength + 1;
 
-    const history = messages
-      .slice(1)
-      .map((m) => ({ role: m.role, content: m.content }));
+    const history = messages.slice(1).map((m) => ({ role: m.role, content: m.content }));
 
     setMessages((prev) => [
       ...prev,
@@ -40,9 +38,7 @@ export function ChatContainer() {
     setIsLoading(true);
 
     await streamChatMessage(
-      text,
-      history,
-      5,
+      text, history, 5,
       (chunk) => {
         setMessages((prev) => {
           const updated = [...prev];
@@ -84,9 +80,16 @@ export function ChatContainer() {
 
   return (
     <>
-      <div className="flex flex-col h-[calc(100vh-57px)] max-w-5xl mx-auto px-4">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'calc(100vh - 62px)',
+        maxWidth: '900px',
+        margin: '0 auto',
+        padding: '0 16px',
+      }}>
 
-        {/* ── Welcome Hero (shown only before first message) ── */}
+        {/* ── Welcome Hero ── */}
         <AnimatePresence>
           {isWelcomeState && (
             <motion.div
@@ -94,55 +97,88 @@ export function ChatContainer() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
               transition={{ duration: 0.5 }}
-              className="pt-10 pb-6 text-center"
+              style={{ paddingTop: '40px', paddingBottom: '24px', textAlign: 'center' }}
             >
               {/* Floating icon */}
-              <div className="flex justify-center mb-5">
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-float">
-                    <BookOpen className="w-9 h-9 text-white" strokeWidth={1.8} />
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                <div style={{ position: 'relative' }}>
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    borderRadius: '20px',
+                    background: 'linear-gradient(135deg, #7c3aed, #6366f1, #ec4899)',
+                    filter: 'blur(12px)', opacity: 0.6,
+                  }} />
+                  <div style={{
+                    position: 'relative',
+                    width: '80px', height: '80px',
+                    borderRadius: '20px',
+                    background: 'linear-gradient(135deg, #7c3aed, #6366f1, #ec4899)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 16px 48px rgba(124,58,237,0.45)',
+                    animation: 'float 6s ease-in-out infinite',
+                  }}>
+                    <BookOpen size={36} color="#fff" strokeWidth={1.8} />
                   </div>
-                  <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  <span style={{
+                    position: 'absolute', top: '-8px', right: '-8px',
+                    width: '28px', height: '28px', borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #fbbf24, #f97316)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 12px rgba(251,191,36,0.4)',
+                  }}>
+                    <Sparkles size={13} color="#fff" />
                   </span>
                 </div>
               </div>
 
-              <h2 className="text-3xl font-bold mb-2">
-                <span className="gradient-text">Discover Your Next</span>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '8px', lineHeight: 1.3 }}>
+                <span style={{
+                  background: 'linear-gradient(135deg, #c4b5fd 0%, #818cf8 40%, #ec4899 100%)',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                }}>Discover Your Next</span>
                 <br />
-                <span className="text-gray-100">Favourite Book</span>
+                <span style={{ color: '#f1f5f9' }}>Favourite Book</span>
               </h2>
-              <p className="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-6">
+              <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '440px', margin: '0 auto', lineHeight: 1.7 }}>
                 Powered by RAG — I search Google Books, generate embeddings, and use AI to give you hyper-personalised recommendations.
               </p>
-
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── Messages scroll area ── */}
-        <div className="flex-1 overflow-y-auto pr-1 space-y-2 pb-4">
+        {/* ── Messages ── */}
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px', paddingBottom: '16px' }}>
           <AnimatePresence initial={false}>
             {messages.map((msg, idx) => (
               <MessageItem key={idx} message={msg} onBookClick={setSelectedBook} />
             ))}
           </AnimatePresence>
 
-          {/* Thinking indicator — only while waiting for first token */}
+          {/* Thinking indicator */}
           <AnimatePresence>
             {isLoading && messages[messages.length - 1]?.content === '' && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center gap-3 pl-2 py-3"
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 8px' }}
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/20 flex-shrink-0">
-                  <Sparkles className="w-4 h-4 text-white animate-spin" />
+                <div style={{
+                  width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
+                  background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 16px rgba(124,58,237,0.35)',
+                }}>
+                  <Sparkles size={15} color="#fff" style={{ animation: 'spin 1.5s linear infinite' }} />
                 </div>
-                <div className="glass-panel rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
-                  <span className="text-xs text-gray-400">Searching catalog & generating embeddings</span>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '10px 16px', borderRadius: '16px',
+                  background: 'linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(20px)',
+                }}>
+                  <span style={{ fontSize: '12px', color: '#9ca3af' }}>Searching catalog & generating embeddings</span>
                   <ThinkingDots />
                 </div>
               </motion.div>
@@ -152,17 +188,19 @@ export function ChatContainer() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* ── Suggested prompt chips ── */}
+        {/* ── Suggested prompts ── */}
         <AnimatePresence>
           {messages.length <= 2 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, height: 0 }}
-              className="pb-3"
+              style={{ paddingBottom: '12px' }}
             >
-              <p className="text-[11px] text-gray-500 font-medium mb-2 pl-1">Try asking:</p>
-              <div className="flex flex-wrap gap-2">
+              <p style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, marginBottom: '8px', paddingLeft: '4px' }}>
+                Try asking:
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {SUGGESTED_PROMPTS.map((prompt, idx) => (
                   <motion.button
                     key={idx}
@@ -171,7 +209,31 @@ export function ChatContainer() {
                     transition={{ delay: idx * 0.06 }}
                     onClick={() => handleSendMessage(prompt)}
                     disabled={isLoading}
-                    className="text-xs glass-panel hover:border-purple-500/40 hover:bg-purple-500/10 text-gray-400 hover:text-purple-300 px-3 py-1.5 rounded-full transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed border border-white/[0.07]"
+                    style={{
+                      fontSize: '12px',
+                      padding: '6px 14px',
+                      borderRadius: '9999px',
+                      background: 'linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      color: '#9ca3af',
+                      cursor: isLoading ? 'not-allowed' : 'pointer',
+                      opacity: isLoading ? 0.4 : 1,
+                      backdropFilter: 'blur(12px)',
+                      transition: 'all 0.2s',
+                      fontFamily: 'inherit',
+                    }}
+                    onMouseEnter={e => {
+                      if (!isLoading) {
+                        e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)';
+                        e.currentTarget.style.color = '#c4b5fd';
+                        e.currentTarget.style.background = 'rgba(139,92,246,0.1)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                      e.currentTarget.style.color = '#9ca3af';
+                      e.currentTarget.style.background = 'linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)';
+                    }}
                   >
                     {prompt}
                   </motion.button>
@@ -182,7 +244,7 @@ export function ChatContainer() {
         </AnimatePresence>
 
         {/* ── Input ── */}
-        <div className="py-4">
+        <div style={{ padding: '12px 0 16px' }}>
           <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
         </div>
       </div>
@@ -199,12 +261,15 @@ export function ChatContainer() {
 
 function ThinkingDots() {
   return (
-    <span className="flex items-center gap-0.5">
+    <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="w-1 h-1 rounded-full bg-purple-400"
-          style={{ animation: `blink 1.2s ${i * 0.2}s ease-in-out infinite` }}
+          style={{
+            width: '5px', height: '5px', borderRadius: '50%',
+            background: '#a78bfa',
+            animation: `blink 1.2s ${i * 0.2}s ease-in-out infinite`,
+          }}
         />
       ))}
     </span>

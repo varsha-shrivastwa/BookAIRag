@@ -7,6 +7,7 @@ import { VectorStoreModule } from './modules/vector-store/vector-store.module';
 import { RagModule } from './modules/rag/rag.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { HealthModule } from './modules/health/health.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { HealthModule } from './modules/health/health.module';
       ttl: 60000,
       limit: 20,
     }]),
+    AuthModule,
     BooksModule,
     VectorStoreModule,
     RagModule,
