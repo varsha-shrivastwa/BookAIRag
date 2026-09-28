@@ -4,6 +4,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Bot, User } from 'lucide-react';
 import { BookRecommendationGrid } from '../books/BookRecommendationGrid';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export function MessageItem({ message, onBookClick }) {
   const { role, content, recommendedBooks, isStreaming } = message || {};
@@ -58,8 +60,27 @@ export function MessageItem({ message, onBookClick }) {
           fontSize: '14px',
           lineHeight: '1.6',
         }}>
-          <div style={{ whiteSpace: 'pre-wrap' }}>
-            {content}
+          <div style={{ lineHeight: '1.7' }}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                p:      ({ children }) => <p style={{ margin: '0 0 8px 0' }}>{children}</p>,
+                strong: ({ children }) => <strong style={{ color: isUser ? '#e9d5ff' : '#c4b5fd', fontWeight: 700 }}>{children}</strong>,
+                em:     ({ children }) => <em style={{ color: isUser ? '#ddd6fe' : '#94a3b8' }}>{children}</em>,
+                h1:     ({ children }) => <h1 style={{ fontSize: '17px', fontWeight: 800, color: isUser ? '#fff' : '#f1f5f9', margin: '12px 0 6px' }}>{children}</h1>,
+                h2:     ({ children }) => <h2 style={{ fontSize: '15px', fontWeight: 700, color: isUser ? '#fff' : '#f1f5f9', margin: '10px 0 5px' }}>{children}</h2>,
+                h3:     ({ children }) => <h3 style={{ fontSize: '14px', fontWeight: 700, color: isUser ? '#fff' : '#e2e8f0', margin: '8px 0 4px' }}>{children}</h3>,
+                ul:     ({ children }) => <ul style={{ paddingLeft: '18px', margin: '6px 0' }}>{children}</ul>,
+                ol:     ({ children }) => <ol style={{ paddingLeft: '18px', margin: '6px 0' }}>{children}</ol>,
+                li:     ({ children }) => <li style={{ margin: '3px 0', color: isUser ? '#f3e8ff' : '#cbd5e1' }}>{children}</li>,
+                code:   ({ inline, children }) => inline
+                  ? <code style={{ background: 'rgba(139,92,246,0.2)', borderRadius: '4px', padding: '1px 5px', fontSize: '12px', fontFamily: 'monospace', color: '#c4b5fd' }}>{children}</code>
+                  : <pre style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', padding: '10px 14px', overflowX: 'auto', margin: '8px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace', color: '#e2e8f0' }}>{children}</code></pre>,
+                blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #7c3aed', paddingLeft: '12px', margin: '8px 0', color: '#94a3b8', fontStyle: 'italic' }}>{children}</blockquote>,
+              }}
+            >
+              {content}
+            </ReactMarkdown>
             {isStreaming && (
               <span style={{
                 display: 'inline-block', width: '2px', height: '14px',
