@@ -2,14 +2,80 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, Copy, Check } from 'lucide-react';
 import { BookRecommendationGrid } from '../books/BookRecommendationGrid';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-export function MessageItem({ message, onBookClick }) {
+function CopyButton({ text }) {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      title={copied ? 'Copied!' : 'Copy answer'}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: '4px',
+        padding: '3px 8px', borderRadius: '6px',
+        background: 'none', border: '1px solid transparent',
+        color: copied ? '#a78bfa' : '#4b5563',
+        cursor: 'pointer', fontSize: '11px', fontFamily: 'inherit',
+        transition: 'all 0.15s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = copied ? '#a78bfa' : '#9ca3af'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = copied ? '#a78bfa' : '#4b5563'; }}
+    >
+      {copied ? <Check size={11} /> : <Copy size={11} />}
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+}
+
+/**
+ * Renders a superscript citation badge [N] inside the message bubble.
+ * Clicking it activates the corresponding source card in DocSourcesPanel.
+ */
+function CitationMarker({ n, onClick }) {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <sup
+      onClick={(e) => { e.stopPropagation(); onClick?.(n); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title={`Source [${n}] — click to highlight`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        minWidth: '15px', height: '15px', padding: '0 3px',
+        borderRadius: '4px', fontSize: '9px', fontWeight: 800, fontFamily: 'monospace',
+        background: hovered ? '#7c3aed' : 'rgba(124,58,237,0.2)',
+        color: hovered ? '#fff' : '#a78bfa',
+        border: '1px solid rgba(124,58,237,0.35)',
+        cursor: onClick ? 'pointer' : 'default',
+        verticalAlign: 'super', lineHeight: 1,
+        transition: 'all 0.15s', userSelect: 'none',
+        marginLeft: '1px', marginRight: '1px',
+      }}
+    >
+      {n}
+    </sup>
+  );
+}
+
+export function MessageItem({ message, onBookClick, onCitationClick }) {
   const { role, content, recommendedBooks, isStreaming } = message || {};
   const isUser = role === 'user';
+
+  // Convert [N] markers to inline-code so ReactMarkdown preserves them verbatim,
+  // then intercept in the custom `code` component below.
+  // Negative lookahead (?!\() avoids breaking markdown links like [1](url).
+  const processedContent = !isUser && onCitationClick && content
+    ? content.replace(/\[(\d+)\](?!\()/g, '`citation:$1`')
+    : content;
 
   return (
     <motion.div
@@ -73,13 +139,22 @@ export function MessageItem({ message, onBookClick }) {
                 ul:     ({ children }) => <ul style={{ paddingLeft: '18px', margin: '6px 0' }}>{children}</ul>,
                 ol:     ({ children }) => <ol style={{ paddingLeft: '18px', margin: '6px 0' }}>{children}</ol>,
                 li:     ({ children }) => <li style={{ margin: '3px 0', color: isUser ? '#f3e8ff' : '#cbd5e1' }}>{children}</li>,
-                code:   ({ inline, children }) => inline
-                  ? <code style={{ background: 'rgba(139,92,246,0.2)', borderRadius: '4px', padding: '1px 5px', fontSize: '12px', fontFamily: 'monospace', color: '#c4b5fd' }}>{children}</code>
-                  : <pre style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', padding: '10px 14px', overflowX: 'auto', margin: '8px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace', color: '#e2e8f0' }}>{children}</code></pre>,
+                code:   ({ inline, children }) => {
+                  // Intercept `citation:N` markers injected by the pre-processor above
+                  if (inline) {
+                    const raw = String(children);
+                    if (raw.startsWith('citation:')) {
+                      const n = parseInt(raw.split(':')[1], 10);
+                      if (!isNaN(n)) return <CitationMarker n={n} onClick={onCitationClick} />;
+                    }
+                    return <code style={{ background: 'rgba(139,92,246,0.2)', borderRadius: '4px', padding: '1px 5px', fontSize: '12px', fontFamily: 'monospace', color: '#c4b5fd' }}>{children}</code>;
+                  }
+                  return <pre style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', padding: '10px 14px', overflowX: 'auto', margin: '8px 0' }}><code style={{ fontSize: '12px', fontFamily: 'monospace', color: '#e2e8f0' }}>{children}</code></pre>;
+                },
                 blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #7c3aed', paddingLeft: '12px', margin: '8px 0', color: '#94a3b8', fontStyle: 'italic' }}>{children}</blockquote>,
               }}
             >
-              {content}
+              {processedContent}
             </ReactMarkdown>
             {isStreaming && (
               <span style={{
@@ -95,14 +170,20 @@ export function MessageItem({ message, onBookClick }) {
           )}
         </div>
 
-        {/* Label */}
-        <p style={{
-          fontSize: '10px', color: '#4b5563', marginTop: '4px',
+        {/* Label + copy button */}
+        <div style={{
+          display: 'flex', alignItems: 'center', marginTop: '4px',
           paddingLeft: '4px', paddingRight: '4px',
-          textAlign: isUser ? 'right' : 'left',
+          justifyContent: isUser ? 'flex-end' : 'flex-start',
+          gap: '4px',
         }}>
-          {isUser ? 'You' : 'BookAI'}
-        </p>
+          <p style={{ fontSize: '10px', color: '#4b5563', margin: 0 }}>
+            {isUser ? 'You' : 'DocAI'}
+          </p>
+          {!isUser && !isStreaming && content && (
+            <CopyButton text={content} />
+          )}
+        </div>
       </div>
 
       {/* User Avatar */}

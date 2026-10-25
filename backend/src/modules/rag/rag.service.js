@@ -1,21 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BooksService } from '../books/books.service';
 import { VectorStoreService } from '../vector-store/vector-store.service';
+import { AiService } from '../ai/ai.service.js';
 import { RAG_SYSTEM_PROMPT } from './prompts/recommendation.prompt';
 
 @Injectable()
 export class RagService {
-  constructor(configService, booksService, vectorStoreService) {
+  constructor(configService, booksService, vectorStoreService, aiService) {
     this.configService = configService;
     this.booksService = booksService;
     this.vectorStoreService = vectorStoreService;
+    this.aiService = aiService;
     this.logger = new Logger(RagService.name);
-
-    const apiKey = this.configService.get('GEMINI_API_KEY');
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.llmModel = this.configService.get('LLM_MODEL') || 'gemini-3.6-flash';
   }
 
   async _retrieveAndBuildContext(userQuery, limit = 5) {
@@ -59,29 +56,25 @@ export class RagService {
     return { formattedPrompt, mappedBooks };
   }
 
-  _toGeminiContents(history, userQuery) {
-    const sanitizedHistory = Array.isArray(history)
-      ? history
-          .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
-          .map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
-      : [];
-    return [...sanitizedHistory, { role: 'user', parts: [{ text: userQuery }] }];
+  _buildMessages(history, userQuery) {
+    return [
+      ...(Array.isArray(history) ? history : [])
+        .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+        .map((m) => ({ role: m.role, content: m.content })),
+      { role: 'user', content: userQuery },
+    ];
   }
 
   async generateRecommendation(userQuery, history = [], limit = 5) {
     const { formattedPrompt, mappedBooks } = await this._retrieveAndBuildContext(userQuery, limit);
-    const contents = this._toGeminiContents(history, userQuery);
+    const messages = this._buildMessages(history, userQuery);
 
     let aiMessage = '';
     try {
-      const model = this.genAI.getGenerativeModel({
-        model: this.llmModel,
-        systemInstruction: formattedPrompt,
-      });
-      const result = await model.generateContent({ contents });
-      aiMessage = result.response.text() || 'Here are some great book recommendations!';
+      aiMessage = await this.aiService.generateChatText(messages, formattedPrompt);
+      if (!aiMessage) aiMessage = 'Here are some great book recommendations!';
     } catch (error) {
-      this.logger.warn(`Gemini call failed (fallback): ${error.message}`);
+      this.logger.warn(`AI call failed (fallback): ${error.message}`);
       aiMessage = `Based on your request for "${userQuery}", here are curated recommendations:`;
     }
 
@@ -90,20 +83,14 @@ export class RagService {
 
   async *streamRecommendation(userQuery, history = [], limit = 5) {
     const { formattedPrompt, mappedBooks } = await this._retrieveAndBuildContext(userQuery, limit);
-    const contents = this._toGeminiContents(history, userQuery);
+    const messages = this._buildMessages(history, userQuery);
 
     try {
-      const model = this.genAI.getGenerativeModel({
-        model: this.llmModel,
-        systemInstruction: formattedPrompt,
-      });
-      const streamResult = await model.generateContentStream({ contents });
-      for await (const chunk of streamResult.stream) {
-        const text = chunk.text();
-        if (text) yield { type: 'chunk', content: text };
+      for await (const text of this.aiService.streamChat(messages, formattedPrompt)) {
+        yield { type: 'chunk', content: text };
       }
     } catch (error) {
-      this.logger.warn(`Gemini streaming failed (fallback): ${error.message}`);
+      this.logger.warn(`AI streaming failed (fallback): ${error.message}`);
       yield { type: 'chunk', content: `Based on your request for "${userQuery}", here are curated recommendations:` };
     }
 
@@ -111,4 +98,4 @@ export class RagService {
   }
 }
 
-Reflect.defineMetadata('design:paramtypes', [ConfigService, BooksService, VectorStoreService], RagService);
+Reflect.defineMetadata('design:paramtypes', [ConfigService, BooksService, VectorStoreService, AiService], RagService);

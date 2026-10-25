@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import dotenv from 'dotenv';
+import express from 'express';
 
 dotenv.config();
 
@@ -12,9 +13,22 @@ const logger = new Logger('Bootstrap');
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Fix: credentials:true requires an explicit origin, not a wildcard
+  // Raise body size limit before NestJS pipes intercept requests (needed for multer + large uploads)
+  app.use(express.json({ limit: '21mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '21mb' }));
+
+  // credentials:true requires an explicit origin, not a wildcard.
+  // Always allow any localhost port (Next.js picks a free port dynamically in dev).
+  // CORS_ORIGIN in .env can add extra allowed origins (comma-separated).
+  const extraOrigins = (process.env.CORS_ORIGIN || '')
+    .split(',').map((s) => s.trim()).filter(Boolean);
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // server-to-server / curl
+      if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+      if (extraOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

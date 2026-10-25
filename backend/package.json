@@ -8,10 +8,13 @@
     "start": "node dist/main.js",
     "start:dev": "nodemon bootstrap.js",
     "build": "babel src -d dist",
-    "seed": "node bootstrap-seed.js"
+    "seed": "node bootstrap-seed.js",
+    "test:security": "node --test test/security.test.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
     "@google/generative-ai": "^0.21.0",
+    "@napi-rs/canvas": "^1.0.13",
     "@nestjs/common": "^12.0.0",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.1.0",
@@ -24,9 +27,17 @@
     "class-validator": "^0.14.1",
     "dotenv": "^16.3.1",
     "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.13.0",
+    "multer": "^2.4.0",
+    "ollama": "^0.6.4",
+    "p-limit": "^7.3.3",
+    "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^6.4.299",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "turndown": "^7.2.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.23.4",

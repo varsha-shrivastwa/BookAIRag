@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 
-export function ChatInput({ onSendMessage, isLoading }) {
+export function ChatInput({ onSendMessage, isLoading, disabled = false, placeholder }) {
   const [input, setInput]       = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef(null);
@@ -17,7 +17,7 @@ export function ChatInput({ onSendMessage, isLoading }) {
 
   const handleSubmit = (e) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || disabled) return;
     onSendMessage(input.trim());
     setInput('');
   };
@@ -29,10 +29,10 @@ export function ChatInput({ onSendMessage, isLoading }) {
     }
   };
 
-  const charLimit  = 1000;
+  const charLimit  = 2000;
   const remaining  = charLimit - input.length;
-  const isNearLimit = remaining < 100;
-  const canSubmit  = input.trim().length > 0 && !isLoading && input.length <= charLimit;
+  const isNearLimit = remaining < 150;
+  const canSubmit  = input.trim().length > 0 && !isLoading && !disabled && input.length <= charLimit;
 
   return (
     <form onSubmit={handleSubmit}>
@@ -85,8 +85,8 @@ export function ChatInput({ onSendMessage, isLoading }) {
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              disabled={isLoading}
-              placeholder="Describe the kind of book you're looking for…"
+              disabled={isLoading || disabled}
+              placeholder={placeholder || 'Ask a question about your document…'}
               maxLength={charLimit}
               style={{
                 width: '100%',

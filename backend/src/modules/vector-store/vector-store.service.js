@@ -1,13 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { AiService } from '../ai/ai.service.js';
 import { BOOK_EMBEDDINGS_TABLE_SCHEMA } from './entities/book-embedding.schema';
 
 @Injectable()
 export class VectorStoreService {
-  constructor(configService) {
+  constructor(configService, aiService) {
     this.configService = configService;
+    this.aiService = aiService;
     this.logger = new Logger(VectorStoreService.name);
 
     const connectionString =
@@ -15,9 +16,7 @@ export class VectorStoreService {
       'postgresql://raguser:ragpass@localhost:5432/book_rag_db';
     this.pool = new Pool({ connectionString });
 
-    const apiKey = this.configService.get('GEMINI_API_KEY');
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.embeddingModel = this.configService.get('EMBEDDING_MODEL') || 'gemini-embedding-001';
+    this.embeddingDimension = parseInt(this.configService.get('EMBEDDING_DIMENSION') || '768', 10);
   }
 
   async onModuleInit() {
@@ -31,12 +30,24 @@ export class VectorStoreService {
 
   async generateEmbedding(text) {
     try {
-      const model = this.genAI.getGenerativeModel({ model: this.embeddingModel });
-      const result = await model.embedContent(text.replace(/\n/g, ' '));
-      return result.embedding.values;
+      return await this.aiService.embedText(text);
     } catch (error) {
       this.logger.error(`Embedding generation failed: ${error.message}`);
-      return new Array(768).fill(0);
+      return new Array(this.embeddingDimension).fill(0);
+    }
+  }
+
+  /**
+   * Embed up to 100 texts in a single API call.
+   * Returns an array of embedding vectors in the same order as the input texts.
+   * Falls back to zero vectors on failure so indexing always completes.
+   */
+  async generateEmbeddingBatch(texts) {
+    try {
+      return await this.aiService.embedBatch(texts);
+    } catch (error) {
+      this.logger.error(`Batch embedding failed: ${error.message}`);
+      return texts.map(() => new Array(this.embeddingDimension).fill(0));
     }
   }
 
@@ -78,4 +89,4 @@ export class VectorStoreService {
   }
 }
 
-Reflect.defineMetadata('design:paramtypes', [ConfigService], VectorStoreService);
+Reflect.defineMetadata('design:paramtypes', [ConfigService, AiService], VectorStoreService);
