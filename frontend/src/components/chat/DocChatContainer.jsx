@@ -159,6 +159,15 @@ export function DocChatContainer() {
         setIsLoading(false);
       },
     );
+    // Ensure loading is cleared even if sources event was not emitted
+    setIsLoading(false);
+    setMessages((prev) => {
+      const updated = [...prev];
+      if (updated[botMsgIdx]?.isStreaming) {
+        updated[botMsgIdx] = { ...updated[botMsgIdx], isStreaming: false };
+      }
+      return updated;
+    });
   };
 
   const isWelcomeState = messages.length <= 1 && !showSummary;

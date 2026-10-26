@@ -8,6 +8,7 @@ import { useConversations } from '@/context/ConversationsContext';
 import { useDocuments } from '@/context/DocumentsContext';
 import { UnifiedSidebar } from '@/components/layout/UnifiedSidebar';
 import { AIChatWindow } from '@/components/chat/AIChatWindow';
+import { DocChatContainer } from '@/components/chat/DocChatContainer';
 import SettingsPanel from '@/components/settings/SettingsPanel';
 
 /** SSR-safe hook that returns the current viewport width (defaults to 1280). */
@@ -25,7 +26,7 @@ function useWindowWidth() {
 export default function Home() {
   const { user, ready, isAuthenticated, logout } = useAuth();
   const { createConversation, switchConversation } = useConversations();
-  const { loadDocuments } = useDocuments();
+  const { loadDocuments, selectedIds } = useDocuments();
   const router = useRouter();
   const width = useWindowWidth();
 
@@ -326,7 +327,7 @@ export default function Home() {
           display: 'flex', flexDirection: 'column',
           minWidth: 0,
         }}>
-          <AIChatWindow />
+          {selectedIds.size > 0 ? <DocChatContainer /> : <AIChatWindow />}
         </div>
       </div>
 

@@ -367,7 +367,17 @@ export class DocChatService {
       yield { type: 'chunk', content: this._friendlyError(err) };
     }
 
-    // Sources are not displayed in the UI — skip emission.
+    // Emit sources so the UI can display citations
+    const sources = final.slice(0, 8).map((c) => ({
+      documentId:   c.document_id,
+      documentName: c.document_name,
+      pageNumber:   c.page_number ?? null,
+      sectionHeading: c.section_heading ?? null,
+      contentType:  c.content_type || 'text',
+      excerpt:      (c.content || '').slice(0, 280),
+      figureLabel:  extractFigureLabel(c.content),
+    }));
+    yield { type: 'sources', sources };
   }
 
   // ── Streaming summary ─────────────────────────────────────────────────────

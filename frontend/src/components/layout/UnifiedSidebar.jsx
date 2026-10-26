@@ -57,7 +57,7 @@ export function UnifiedSidebar({ onMobileClose, onNewChat }) {
   } = useConversations();
 
   /* Documents context */
-  const { documents, addDocument, updateDocument, removeDocument } = useDocuments();
+  const { documents, addDocument, updateDocument, removeDocument, toggleSelection, selectedIds } = useDocuments();
 
   /* Local upload queue — lives from file-pick through full processing */
   // [{localId, name, status:'uploading'|'processing'|'error', percent:0-100, documentId?, error?}]
@@ -413,19 +413,24 @@ export function UnifiedSidebar({ onMobileClose, onNewChat }) {
             const isProcessing = !isReady && !isError;
             const isHov = hoveredDocId === doc.id;
             const isConf = confirmDocId === doc.id;
+            const isSel = isReady && selectedIds.has(doc.id);
 
             return (
               <div
                 key={doc.id}
+                onClick={isReady ? () => toggleSelection(doc.id) : undefined}
                 onMouseEnter={() => setHoveredDocId(doc.id)}
                 onMouseLeave={() => setHoveredDocId(null)}
                 style={{
                   position: 'relative',
                   display: 'flex', alignItems: 'center', gap: '7px',
                   padding: '7px 8px', marginBottom: '2px', borderRadius: '9px',
-                  background: isHov ? 'rgba(255,255,255,0.03)' : 'transparent',
-                  border: '1px solid transparent',
-                  transition: 'background 0.15s',
+                  background: isSel
+                    ? 'rgba(124,58,237,0.14)'
+                    : isHov ? 'rgba(255,255,255,0.03)' : 'transparent',
+                  border: `1px solid ${isSel ? 'rgba(139,92,246,0.3)' : 'transparent'}`,
+                  transition: 'background 0.15s, border-color 0.15s',
+                  cursor: isReady ? 'pointer' : 'default',
                 }}
               >
                 {/* ID badge */}
@@ -458,7 +463,16 @@ export function UnifiedSidebar({ onMobileClose, onNewChat }) {
                     <Spinner size={11} />
                   </span>
                 )}
-                {isReady && <CheckCircle size={11} color="#22c55e" style={{ flexShrink: 0 }} />}
+                {isReady && !isSel && <CheckCircle size={11} color="#22c55e" style={{ flexShrink: 0 }} />}
+                {isReady && isSel && (
+                  <div style={{
+                    flexShrink: 0, width: '16px', height: '16px', borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <CheckCircle size={10} color="#fff" />
+                  </div>
+                )}
                 {isError && <AlertCircle size={11} color="#ef4444" style={{ flexShrink: 0 }} />}
 
                 {/* Delete button — only on hover */}
